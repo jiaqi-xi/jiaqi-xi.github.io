@@ -3,13 +3,14 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Hexo
-subtitle: ''
-description: ''
-keywords:
-author: John Doe
-language: en
-timezone: ''
+title: 西瓜皮的博客
+subtitle: 'Welcome to my blog!'
+description: '踩上西瓜皮，写到哪是哪'
+keywords: Jiaqi Xi,Sisi,奚佳琪
+author: 西瓜皮
+language: zh-CN
+timezone: Asia/Shanghai
+email: im.sisixi@gmail.com
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
@@ -46,7 +47,7 @@ relative_link: false
 future: true
 highlight:
   enable: true
-  line_number: true
+  line_number: false
   auto_detect: false
   tab_replace: ''
   wrap: true
@@ -95,9 +96,28 @@ ignore:
 ## Themes: https://hexo.io/themes/
 theme: butterfly
 
+# adding toc
+toc:
+  maxdepth: 3
+  class: toc
+  slugify: transliteration
+  decodeEntities: false
+  anchor:
+    position: after
+    symbol: '#'
+    style: header-anchor
+
+
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
   type: git
   repo: https://github.com/jiaqi-xi/jiaqi-xi.github.io.git
   branch: master
+
+markdown:
+  plugins:
+    - plugin:
+      name: '@neilsustc/markdown-it-katex'
+      options:
+        strict: false

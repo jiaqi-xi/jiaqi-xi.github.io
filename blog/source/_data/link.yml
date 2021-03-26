@@ -1,0 +1,23 @@
+- class_name: 友情链接
+  class_desc: 奚奚和她的朋友们
+  link_list:
+    - name: NaturezzZ
+      link: https://blog.zhengnq.top/
+      avatar: https://blog.zhengnq.top/upload/2020/04/iconsquare1-3574d59738b44d99813cecf03a6c7315.png
+      descr: 可以不看我 小郑必需火🔥
+    - name: lwpie
+      link: https://r.bin.sh.cn/
+      avatar: https://r.bin.sh.cn/assets/about/avatar.jpg
+      descr: 刘父的垃圾桶 请进🙇‍♀️
+    - name: 小林
+      link: https://phoenixrain-pku.github.io/
+      avatar: https://tva1.sinaimg.cn/large/007S8ZIlgy1ggjwxnozfcj30u00u0gpq.jpg
+      descr: 林主任了解一下？👭
+
+- class_name: 网站
+  class_desc: 喜欢的一些网页链接
+  link_list:
+    - name: WaitButWhy
+      link: https://waitbutwhy.com/
+      avatar: https://tva1.sinaimg.cn/large/007S8ZIlgy1ggihp6zbwoj30rq0rqgss.jpg
+      descr: 下饭菜
