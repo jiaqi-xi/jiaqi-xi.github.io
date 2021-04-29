@@ -1,0 +1,692 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>双人博弈纳什均衡求解 | 西瓜皮的博客</title><meta name="description" content="Table of Contents:    纳什均衡 纯策略均衡算法 混合策略均衡算法 实验结果 实验心得    纳什均衡# 纳什均衡是一个策略组合，其中每个博弈者的均衡策略都旨在让自己期望收益达到最大，因而没有人愿意独自背离该均衡。为了方便算法设计，我们可以如下进一步理解这一定义：  对于纯策略纳什均衡，我们理解为“没有博弈者有意愿去改变自己的策略”。 对于混合策略纳什均衡，我们理解为“个人混合"><meta name="keywords" content="“双人博弈, 纳什均衡, Course work”"><meta name="author" content="西瓜皮,im.sisixi@gmail.com"><meta name="copyright" content="西瓜皮"><meta name="format-detection" content="telephone=no"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="http://jiaqi-xi.github.io/2021/04/29/%E5%8F%8C%E4%BA%BA%E5%8D%9A%E5%BC%88%E7%BA%B3%E4%BB%80%E5%9D%87%E8%A1%A1%E6%B1%82%E8%A7%A3/"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//www.google-analytics.com" crossorigin="crossorigin"/><link rel="preconnect" href="//fonts.googleapis.com" crossorigin="crossorigin"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><meta property="og:type" content="article"><meta property="og:title" content="双人博弈纳什均衡求解"><meta property="og:url" content="http://jiaqi-xi.github.io/2021/04/29/%E5%8F%8C%E4%BA%BA%E5%8D%9A%E5%BC%88%E7%BA%B3%E4%BB%80%E5%9D%87%E8%A1%A1%E6%B1%82%E8%A7%A3/"><meta property="og:site_name" content="西瓜皮的博客"><meta property="og:description" content="Table of Contents:    纳什均衡 纯策略均衡算法 混合策略均衡算法 实验结果 实验心得    纳什均衡# 纳什均衡是一个策略组合，其中每个博弈者的均衡策略都旨在让自己期望收益达到最大，因而没有人愿意独自背离该均衡。为了方便算法设计，我们可以如下进一步理解这一定义：  对于纯策略纳什均衡，我们理解为“没有博弈者有意愿去改变自己的策略”。 对于混合策略纳什均衡，我们理解为“个人混合"><meta property="og:image" content="https://tva1.sinaimg.cn/large/008i3skNgy1gq0thyhyunj31900u0kjl.jpg"><meta property="article:published_time" content="2021-04-29T11:00:00.000Z"><meta property="article:modified_time" content="2021-04-29T11:02:09.049Z"><meta name="twitter:card" content="summary"><script>var activateDarkMode = function () {
+  document.documentElement.setAttribute('data-theme', 'dark')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000')
+  }
+}
+var activateLightMode = function () {
+  document.documentElement.setAttribute('data-theme', 'light')
+  if (document.querySelector('meta[name="theme-color"]') !== null) {
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', '#fff')
+  }
+}
+
+var getCookies = function (name) {
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop().split(';').shift()
+}
+
+var autoChangeMode = 'false'
+var t = getCookies('theme')
+if (autoChangeMode === '1') {
+  var isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+  var isLightMode = window.matchMedia('(prefers-color-scheme: light)').matches
+  var isNotSpecified = window.matchMedia('(prefers-color-scheme: no-preference)').matches
+  var hasNoSupport = !isDarkMode && !isLightMode && !isNotSpecified
+
+  if (t === undefined) {
+    if (isLightMode) activateLightMode()
+    else if (isDarkMode) activateDarkMode()
+    else if (isNotSpecified || hasNoSupport) {
+      console.log('You specified no preference for a color scheme or your browser does not support it. I Schedule dark mode during night time.')
+      var now = new Date()
+      var hour = now.getHours()
+      var isNight = hour <= 6 || hour >= 18
+      isNight ? activateDarkMode() : activateLightMode()
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(function (e) {
+      if (Cookies.get('theme') === undefined) {
+        e.matches ? activateDarkMode() : activateLightMode()
+      }
+    })
+  } else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else if (autoChangeMode === '2') {
+  now = new Date()
+  hour = now.getHours()
+  isNight = hour <= 6 || hour >= 18
+  if (t === undefined) isNight ? activateDarkMode() : activateLightMode()
+  else if (t === 'light') activateLightMode()
+  else activateDarkMode()
+} else {
+  if (t === 'dark') activateDarkMode()
+  else if (t === 'light') activateLightMode()
+}</script><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css"><link rel="next" title="友谊悖论随机图生成模拟检验" href="http://jiaqi-xi.github.io/2021/04/29/%E5%85%B3%E4%BA%8E%E5%8F%8B%E8%B0%8A%E6%82%96%E8%AE%BA%E7%9A%84%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%94%9F%E6%88%90%E6%A8%A1%E6%8B%9F%E6%A3%80%E9%AA%8C/"><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/instantsearch.js@2.10.5/dist/instantsearch.min.css"><script src="https://cdn.jsdelivr.net/npm/instantsearch.js@2.10.5/dist/instantsearch.min.js" defer></script><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'G-YKZ992L7LH', 'auto');
+ga('send', 'pageview');
+</script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Titillium+Web&amp;display=swap"><script>var GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: {"appId":"O8XZ6EUWB7","apiKey":"26afaa7a8b9be46c1972943c468c6e25","indexName":"blog_shrimp","hits":{"per_page":6},"languages":{"input_placeholder":"搜索文章","hits_empty":"找不到您查询的内容:${query}","hits_stats":"找到 ${hits} 条结果，用时 ${time} 毫秒"}},
+  localSearch: undefined,
+  translate: {"defaultEncoding":2,"translateDelay":0,"msgToTraditionalChinese":"繁","msgToSimplifiedChinese":"簡"},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  bookmark: {
+    message_prev: '按',
+    message_next: '键将本页加入书签'
+  },
+  runtime_unit: '天',
+  runtime: false,
+  copyright: {"languages":{"author":"作者: 西瓜皮","link":"链接: ","source":"来源: 西瓜皮的博客","info":"著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。"}},
+  ClickShowText: {"text":"Hi!,在这！,Here!,看哪呢？","fontSize":"15px"},
+  medium_zoom: false,
+  fancybox: true,
+  Snackbar: {"bookmark":{"message_prev":"按","message_next":"键将本页加入书签"},"chs_to_cht":"你已切换为繁体","cht_to_chs":"你已切换为简体","day_to_night":"你已切换为深色模式","night_to_day":"你已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#121212","position":"bottom-left"},
+  justifiedGallery: {
+    js: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/js/jquery.justifiedGallery.min.js',
+    css: 'https://cdn.jsdelivr.net/npm/justifiedGallery/dist/css/justifiedGallery.min.css'
+  },
+  baiduPush: false,
+  highlightCopy: true,
+  highlightLang: true,
+  isPhotoFigcaption: false,
+  islazyload: true,
+  isanchor: false    
+}</script><script>var GLOBAL_CONFIG_SITE = { 
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isSidebar: true
+  }</script><noscript><style>
+#nav {
+  opacity: 1
+}
+.justified-gallery img{
+  opacity: 1
+}
+</style></noscript><meta name="generator" content="Hexo 4.2.1"></head><body><div id="mobile-sidebar"><div id="menu_mask"></div><div id="mobile-sidebar-menus"><div class="mobile_author_icon"><img class="avatar-img" src="https://tva1.sinaimg.cn/large/008eGmZEly1gml033gjsbj30cg0cg0to.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="mobile_post_data"><div class="mobile_data_item is-center"><div class="mobile_data_link"><a href="/archives/"><div class="headline">文章</div><div class="length_num">8</div></a></div></div><div class="mobile_data_item is-center">      <div class="mobile_data_link"><a href="/tags/"><div class="headline">标签</div><div class="length_num">7</div></a></div></div><div class="mobile_data_item is-center">     <div class="mobile_data_link"><a href="/categories/"><div class="headline">分类</div><div class="length_num">3</div></a></div></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-calendar"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-hashtag"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-thumbs-up"></i><span> 生活</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/photograph/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-handshake"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/me/"><i class="fa-fw fas fa-user-circle"></i><span> 关于我</span></a></div></div></div></div><i class="fas fa-arrow-right on" id="toggle-sidebar"></i><div id="sidebar"><div class="sidebar-toc"><div class="sidebar-toc__title">目录</div><div class="sidebar-toc__progress"><span class="progress-notice">你已经读了</span><span class="progress-num">0</span><span class="progress-percentage">%</span><div class="sidebar-toc__progress-bar">     </div></div><div class="sidebar-toc__content"><ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#"><span class="toc-number">1.</span> <span class="toc-text">纳什均衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#"><span class="toc-number">2.</span> <span class="toc-text">纯策略均衡算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#"><span class="toc-number">3.</span> <span class="toc-text">混合策略均衡算法</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">3.1.</span> <span class="toc-text">优化：去除严格非优策略</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">3.2.</span> <span class="toc-text">求解：线性方程组分情况讨论</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#"><span class="toc-number">4.</span> <span class="toc-text">实验结果</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">4.1.</span> <span class="toc-text">Game1：多个纯策略均衡，混合策略取概率分布</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">4.2.</span> <span class="toc-text">Game2：单个纯策略均衡，混合策略与纯策略一致</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">4.3.</span> <span class="toc-text">Game3：无纯策略均衡，有无穷混合策略解</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#"><span class="toc-number">4.4.</span> <span class="toc-text">Game4：无纯策略均衡，混合策略取概率分布</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#"><span class="toc-number">5.</span> <span class="toc-text">实验心得</span></a></li></ol></div></div></div><div id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://tva1.sinaimg.cn/large/008i3skNgy1gq0thyhyunj31900u0kjl.jpg)"><nav id="nav"><span class="pull-left" id="blog_name"><a class="blog_title" id="site-name" href="/">西瓜皮的博客</a></span><span class="pull-right menus"><div id="search_button"><a class="site-page social-icon search"><i class="fas fa-search fa-fw"></i><span> 搜索</span></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-calendar"></i><span> 时间轴</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-hashtag"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page"><i class="fa-fw fas fa-thumbs-up"></i><span> 生活</span><i class="fas fa-chevron-down menus-expand"></i></a><ul class="menus_item_child"><li><a class="site-page" href="/music/"><i class="fa-fw fas fa-music"></i><span> 音乐</span></a></li><li><a class="site-page" href="/photograph/"><i class="fa-fw fa fa-camera-retro"></i><span> 相册</span></a></li><li><a class="site-page" href="/game/"><i class="fa-fw fas fa-gamepad"></i><span> 游戏</span></a></li></ul></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-handshake"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/me/"><i class="fa-fw fas fa-user-circle"></i><span> 关于我</span></a></div></div><span class="toggle-menu close"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></span></span></nav><div id="post-info"><div id="post-title"><div class="posttitle">双人博弈纳什均衡求解</div></div><div id="post-meta"><div class="meta-firstline"><time class="post-meta__date"><span class="post-meta__date-created" title="发表于 2021-04-29 19:00:00"><i class="far fa-calendar-alt fa-fw"></i> 发表于 2021-04-29</span><span class="post-meta__separator">|</span><span class="post-meta__date-updated" title="更新于 2021-04-29 19:02:09"><i class="fas fa-history fa-fw"></i> 更新于 2021-04-29</span></time><span class="post-meta__categories"><span class="post-meta__separator">|</span><i class="fas fa-inbox fa-fw post-meta__icon"></i><a class="post-meta__categories" href="/categories/Course-work/">Course work</a></span></div><div class="meta-secondline"> </div><div class="meta-thirdline"><span class="post-meta-pv-cv"><i class="far fa-eye fa-fw post-meta__icon"></i><span>阅读量:</span><span id="busuanzi_value_page_pv"></span></span><span class="post-meta-commentcount"></span></div></div></div></header><main class="layout_post" id="content-inner"><article id="post"><div class="post-content" id="article-container"><p><strong>Table of Contents:</strong></p>
+<div class="toc">
+<!-- toc -->
+<ul>
+<li><a href="#na-shi-jun-heng">纳什均衡</a></li>
+<li><a href="#chun-ce-lue-jun-heng-suan-fa">纯策略均衡算法</a></li>
+<li><a href="#hun-he-ce-lue-jun-heng-suan-fa">混合策略均衡算法</a></li>
+<li><a href="#shi-yan-jie-guo">实验结果</a></li>
+<li><a href="#shi-yan-xin-de">实验心得</a></li>
+</ul>
+<!-- tocstop -->
+</div>
+<h3><span id="na-shi-jun-heng">纳什均衡</span><a href="#na-shi-jun-heng" class="header-anchor">#</a></h3>
+<p>纳什均衡是一个策略组合，其中每个博弈者的均衡策略都旨在让自己期望收益达到最大，因而没有人愿意独自背离该均衡。为了方便算法设计，我们可以如下进一步理解这一定义：</p>
+<ul>
+<li>对于纯策略纳什均衡，我们理解为“没有博弈者有意愿去改变自己的策略”。</li>
+<li>对于混合策略纳什均衡，我们理解为“个人混合策略的选择使得他人的任意选择期望收益一致”。</li>
+</ul>
+<p>纳什证明了n人有限博弈中，纳什均衡的普遍存在性。纯策略可以被理解为选定策略概率为1的混合策略特例，因此存在性定理也可以说是必定有混合策略存在。</p>
+<h3><span id="chun-ce-lue-jun-heng-suan-fa">纯策略均衡算法</span><a href="#chun-ce-lue-jun-heng-suan-fa" class="header-anchor">#</a></h3>
+<p>本次实验中只考虑双人博弈情况，朴素的算法可以遍历两人的<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>n</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">n^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8141079999999999em;vertical-align:0em;"></span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span>对选择，然后考虑行列方向上两人有没有更优的选择，是否能为更高收益背离当前策略。这样的算法复杂度是<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mn>3</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n^3)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>的。</p>
+<p>假设行博弈者为a，列博弈者为b。考虑借助经济学上常用的“划线法”来优化至<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>：</p>
+<ol>
+<li>
+<p>固定行，找每列中b收益最大的格子，标记+1</p>
+<p>固定列，找每行a收益最大的格子，标记+1</p>
+</li>
+<li>
+<p>所有格子中被标记达到2的格子即为纯策略</p>
+</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">max_a = np.amax(pay_a, axis=<span class="number">0</span>)  <span class="comment"># for each column (choice of b), select the max a</span></span><br><span class="line">max_b = np.amax(pay_b, axis=<span class="number">1</span>)	<span class="comment"># for each row (choice of a), select the max b</span></span><br><span class="line">choice_a = np.zeros((n, n))</span><br><span class="line">choice_b = np.zeros((n, n))</span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(n):  <span class="comment"># Suppose that a selected the row i</span></span><br><span class="line">    choice_b[i][np.where(pay_b[i, :] == max_b[i])] += <span class="number">1</span>   <span class="comment"># best grids for b</span></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(n):  <span class="comment"># Suppose that b selected the col i</span></span><br><span class="line">    choice_a[i][np.where(pay_a[:, i] == max_a[i])] += <span class="number">1</span>   <span class="comment"># best grids for a</span></span><br><span class="line">choice_a = choice_a.T</span><br><span class="line">choice = choice_a + choice_b</span><br><span class="line">print(np.where(choice == <span class="number">2</span>))    <span class="comment"># count the number of favored grids</span></span><br></pre></td></tr></table></figure>
+<p>这个算法的正确性很好理解，每次标记都说明行（列）博弈者在这个格子中时，列（行）固定，没有意愿更改行（列）选择。如果一个格子被两次标记，就说明行列博弈者都没有意愿改变，即为纯策略结果。且算法选取最大值的所有索引，因此不会遗漏可行的纯策略。</p>
+<p>找最大值索引并标记的过程是<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>O</mi><mo stretchy="false">(</mo><msup><mi>n</mi><mn>2</mn></msup><mo stretchy="false">)</mo></mrow><annotation encoding="application/x-tex">O(n^2)</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.064108em;vertical-align:-0.25em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">O</span><span class="mopen">(</span><span class="mord"><span class="mord mathnormal">n</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141079999999999em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose">)</span></span></span></span>的，因此划线算法相较朴素的验证更优。因为划线法遍历一遍就直接找到了最优的格子，而不用考虑去检验一些一定不是均衡的格子。</p>
+<h3><span id="hun-he-ce-lue-jun-heng-suan-fa">混合策略均衡算法</span><a href="#hun-he-ce-lue-jun-heng-suan-fa" class="header-anchor">#</a></h3>
+<h4><span id="you-hua-qu-chu-yan-ge-fei-you-ce-lue">优化：去除严格非优策略</span><a href="#you-hua-qu-chu-yan-ge-fei-you-ce-lue" class="header-anchor">#</a></h4>
+<p>延续纯策略的理念，混合策略均衡也可以利用最大值索引来完成“去除严格非优策略”的优化。我们已经求解纯策略得到了<code>choice_a</code>，<code>choice_b</code>两个矩阵，他们用01矩阵分别记录了“固定列，a收益最大的行”，“固定行，b收益最大的列”。也就是说，在<code>choice_a</code>中如果有一行全为0，说明b取任意列，这一行都不会被a选择，即它被其他行严格支配，我们可以删除这一行。<code>choice_b</code>的全0列也同理。</p>
+<p>所以优化部分的算法设计如下：</p>
+<ol>
+<li>找到<code>choice_a</code>中的全0行和<code>choice_b</code>中的全0列</li>
+<li>在两个矩阵中删除这些行列</li>
+<li>重复1、2，直到没有被严格支配的行或列</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(choice_a, choice_b)</span>:</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        del_a = (choice_a == <span class="number">0</span>).all(<span class="number">1</span>)  <span class="comment"># del choice_a all 0 row</span></span><br><span class="line">        del_b = (choice_b == <span class="number">0</span>).all(<span class="number">0</span>)  <span class="comment"># del choice_b all 0 col</span></span><br><span class="line">        temp_a = choice_a.copy()</span><br><span class="line">        temp_b = choice_b.copy()</span><br><span class="line">        choice_a[:, del_b] = <span class="number">0</span></span><br><span class="line">        choice_b[del_a, :] = <span class="number">0</span></span><br><span class="line">        <span class="keyword">if</span> (temp_a == choice_a).all() <span class="keyword">and</span> (temp_b == choice_b).all():</span><br><span class="line">            print(<span class="string">'del_a'</span>, del_a)</span><br><span class="line">            print(<span class="string">'del_b'</span>, del_b)</span><br><span class="line">            <span class="keyword">return</span> del_a, del_b</span><br></pre></td></tr></table></figure>
+<h4><span id="qiu-jie-xian-xing-fang-cheng-zu-fen-qing-kuang-tao-lun">求解：线性方程组分情况讨论</span><a href="#qiu-jie-xian-xing-fang-cheng-zu-fen-qing-kuang-tao-lun" class="header-anchor">#</a></h4>
+<p>这样得到了要删除的行列，直接在payoff矩阵中删除他们，得到了新的payoff矩阵，然后再进行矩阵求解。求解即分别对行列博弈者列出“使得另一人的任意选择期望收益一致”的线性方程组。通过矩阵秩判断无解、无穷解和唯一解的情况。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">solve_equation</span><span class="params">(m, n)</span>:</span>	<span class="comment"># m为系数矩阵，n为系数矩阵的行数</span></span><br><span class="line">    y = np.zeros(n)</span><br><span class="line">    y[<span class="number">-1</span>] = <span class="number">1</span></span><br><span class="line">    r = np.column_stack((m, y.T))</span><br><span class="line">    rank_r = matrix_rank(r)</span><br><span class="line">    rank_m = matrix_rank(m)</span><br><span class="line">    <span class="keyword">if</span> rank_r &gt; rank_m:</span><br><span class="line">        print(<span class="string">'No solution.'</span>)</span><br><span class="line">    <span class="keyword">elif</span> rank_r &lt; m.shape[<span class="number">1</span>]:</span><br><span class="line">        print(<span class="string">'Infinite solutions.'</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        x = solve(m, y)</span><br><span class="line">        print(<span class="string">'Probability is: '</span>, x)</span><br></pre></td></tr></table></figure>
+<h3><span id="shi-yan-jie-guo">实验结果</span><a href="#shi-yan-jie-guo" class="header-anchor">#</a></h3>
+<h4><span id="game1-duo-ge-chun-ce-lue-jun-heng-hun-he-ce-lue-qu-gai-lu-fen-bu">Game1：多个纯策略均衡，混合策略取概率分布</span><a href="#game1-duo-ge-chun-ce-lue-jun-heng-hun-he-ce-lue-qu-gai-lu-fen-bu" class="header-anchor">#</a></h4>
+<p>博弈矩阵如下，红色的格子表示算法找到的纯策略均衡：</p>
+<table>
+<thead>
+<tr>
+<th><strong>15,11</strong></th>
+<th>0,0</th>
+<th>0,-5</th>
+<th>0,0</th>
+<th>0,0</th>
+<th>0,-4</th>
+<th>0,0</th>
+<th>0,-3</th>
+<th>0,0</th>
+<th>-4,0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td>0,0</td>
+<td><strong>15,12</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,-1</td>
+<td>0,0</td>
+<td><strong>15,14</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-3,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>-4,-4</td>
+<td>0,0</td>
+<td>0,-3</td>
+<td><strong>15,10</strong></td>
+<td>-1,0</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td>-2,-2</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>-1,0</td>
+<td><strong>15,15</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,-4</td>
+<td>0,-5</td>
+</tr>
+<tr>
+<td>0,-5</td>
+<td>0,-4</td>
+<td>0,0</td>
+<td>0,-3</td>
+<td>0,0</td>
+<td><strong>15,14</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td>0,0</td>
+<td>0,-4</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-5,-2</td>
+<td><strong>14,14</strong></td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>-3,0</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td><strong>15,13</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-2,0</td>
+</tr>
+<tr>
+<td>-4,-5</td>
+<td>0,0</td>
+<td>-3,-4</td>
+<td>0,-3</td>
+<td>-1,-2</td>
+<td>0,0</td>
+<td>0,-1</td>
+<td><strong>11,13</strong></td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>-3,-4</td>
+<td>0,0</td>
+<td>-2,0</td>
+<td>0,0</td>
+<td>-1,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,-3</td>
+<td>0,0</td>
+<td><strong>14,13</strong></td>
+</tr>
+</tbody>
+</table>
+<p>比较显然，纯策略的结果是合理的，每个格子都是自己行列里的绝对最大，到其中任意一个格子里都没有人有意愿移动。</p>
+<p>去严格非优的优化显示没有要删除的行或列，这也可以解释，从纯策略结果可以看到纯策略分布占据了所有行列，因此没有被严格支配的行或列。</p>
+<p>二者混合战略均衡的概率分配如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Player a: </span><br><span class="line">Probability <span class="keyword">is</span>:  [<span class="number">0.21515994</span> <span class="number">0.07186778</span> <span class="number">0.17512398</span> <span class="number">0.11367798</span> <span class="number">0.05471334</span> <span class="number">0.0964474</span></span><br><span class="line"> <span class="number">0.04669742</span> <span class="number">0.05145731</span> <span class="number">0.1203566</span>  <span class="number">0.05449824</span>]</span><br><span class="line">Player b: </span><br><span class="line">Probability <span class="keyword">is</span>:  [<span class="number">0.096489</span>   <span class="number">0.07363228</span> <span class="number">0.08651383</span> <span class="number">0.11826693</span> <span class="number">0.06719968</span> <span class="number">0.06719968</span></span><br><span class="line"> <span class="number">0.09657079</span> <span class="number">0.15642657</span> <span class="number">0.12786629</span> <span class="number">0.10983496</span>]</span><br></pre></td></tr></table></figure>
+<h4><span id="game2-dan-ge-chun-ce-lue-jun-heng-hun-he-ce-lue-yu-chun-ce-lue-yi-zhi">Game2：单个纯策略均衡，混合策略与纯策略一致</span><a href="#game2-dan-ge-chun-ce-lue-jun-heng-hun-he-ce-lue-yu-chun-ce-lue-yi-zhi" class="header-anchor">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>13,-4</th>
+<th>8,10</th>
+<th>13,-5</th>
+<th>1,9</th>
+<th>10,11</th>
+<th>0,-4</th>
+<th>11,10</th>
+<th>5,-3</th>
+<th>2,6</th>
+<th>-4,8</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>15,14</td>
+<td>15,7</td>
+<td>15,4</td>
+<td>15,9</td>
+<td><strong>15,15</strong></td>
+<td>15,-1</td>
+<td>15,2</td>
+<td>11,14</td>
+<td>14,-4</td>
+<td>14,-5</td>
+</tr>
+<tr>
+<td>2,-1</td>
+<td>1,4</td>
+<td>12,6</td>
+<td>2,5</td>
+<td>12,14</td>
+<td>8,10</td>
+<td>-3,13</td>
+<td>5,11</td>
+<td>0,2</td>
+<td>8,2</td>
+</tr>
+<tr>
+<td>-4,-4</td>
+<td>10,4</td>
+<td>14,-3</td>
+<td>12,-3</td>
+<td>-1,10</td>
+<td>13,6</td>
+<td>14,-1</td>
+<td>-2,-2</td>
+<td>9,0</td>
+<td>1,6</td>
+</tr>
+<tr>
+<td>8,8</td>
+<td>9,2</td>
+<td>3,-1</td>
+<td>14,11</td>
+<td>0,12</td>
+<td>3,9</td>
+<td>4,0</td>
+<td>0,0</td>
+<td>10,6</td>
+<td>5,8</td>
+</tr>
+<tr>
+<td>2,-5</td>
+<td>12,-4</td>
+<td>5,5</td>
+<td>2,-3</td>
+<td>3,14</td>
+<td>7,13</td>
+<td>0,7</td>
+<td>10,2</td>
+<td>11,3</td>
+<td>11,10</td>
+</tr>
+<tr>
+<td>14,10</td>
+<td>-3,0</td>
+<td>10,9</td>
+<td>7,-1</td>
+<td>8,13</td>
+<td>13,6</td>
+<td>12,7</td>
+<td>10,0</td>
+<td>12,9</td>
+<td>-2,8</td>
+</tr>
+<tr>
+<td>-4,-5</td>
+<td>9,12</td>
+<td>-3,-4</td>
+<td>6,-3</td>
+<td>-1,13</td>
+<td>14,9</td>
+<td>10,-1</td>
+<td>9,8</td>
+<td>11,9</td>
+<td>5,3</td>
+</tr>
+<tr>
+<td>9,8</td>
+<td>5,11</td>
+<td>11,-1</td>
+<td>2,5</td>
+<td>14,14</td>
+<td>1,13</td>
+<td>13,10</td>
+<td>-5,-2</td>
+<td>4,8</td>
+<td>2,4</td>
+</tr>
+<tr>
+<td>-3,-4</td>
+<td>14,12</td>
+<td>-2,4</td>
+<td>0,10</td>
+<td>-1,13</td>
+<td>14,7</td>
+<td>1,6</td>
+<td>0,-3</td>
+<td>13,1</td>
+<td>8,1</td>
+</tr>
+</tbody>
+</table>
+<p>这个博弈中纯策略只有第二行第五列的(15,15)，容易检验它是符合纳什均衡定义的。</p>
+<p>调出<code>choice_a</code>，<code>choice_b</code>可以发现前者只有第2行为1，后者只有第5列为1。这一现象说明第2行的a收益严格支配其他行，第5列的b收益严格支配其他列，检查确实如此。</p>
+<p>也因此混合策略优化后，只剩下这一格，自然两者选它的概率都为1，混合策略与纯策略一致。</p>
+<h4><span id="game3-wu-chun-ce-lue-jun-heng-you-wu-qiong-hun-he-ce-lue-jie">Game3：无纯策略均衡，有无穷混合策略解</span><a href="#game3-wu-chun-ce-lue-jun-heng-you-wu-qiong-hun-he-ce-lue-jie" class="header-anchor">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>0,0</th>
+<th>-1,1</th>
+<th>1,-1</th>
+<th>-1,1</th>
+<th>1,-1</th>
+<th>0,0</th>
+<th>1,-1</th>
+<th>0,0</th>
+<th>-1,1</th>
+<th>0,0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-1,1</td>
+<td>0,0</td>
+<td>-1,-1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+</tr>
+<tr>
+<td>1,-1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>1,-1</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>-1,1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+</tr>
+<tr>
+<td>1,-1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>1,-1</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>-1,1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+</tr>
+<tr>
+<td>1,-1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>1,-1</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>-1,1</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+</tr>
+</tbody>
+</table>
+<p>这个博弈中不存在纯策略均衡，其实也可以直接从表格中看出。a每行和b每列最大值都是1，因此标记的数量其实就是格子中1的数量。然而不存在(1,1)的格子，因此不存在二者都喜欢的格子，即不存在纯策略均衡。</p>
+<p>同时也不存在被严格支配的行或列，因此没得优化。然后进入解线性方程组的阶段：</p>
+<ul>
+<li>a的系数矩阵和增广矩阵秩同为4，小于未知数个数10，因此有无穷解。</li>
+<li>B的系数矩阵和增广矩阵秩同为3，小于未知数个数10，因此有无穷解。</li>
+</ul>
+<h4><span id="game4-wu-chun-ce-lue-jun-heng-hun-he-ce-lue-qu-gai-lu-fen-bu">Game4：无纯策略均衡，混合策略取概率分布</span><a href="#game4-wu-chun-ce-lue-jun-heng-hun-he-ce-lue-qu-gai-lu-fen-bu" class="header-anchor">#</a></h4>
+<table>
+<thead>
+<tr>
+<th>0,0</th>
+<th>-1,1</th>
+<th>0,0</th>
+<th>0,0</th>
+<th>0,0</th>
+<th>0,0</th>
+<th>0,0</th>
+<th>1,-1</th>
+<th>1,-1</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+<td>0,0</td>
+</tr>
+<tr>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+<td>-1,1</td>
+</tr>
+<tr>
+<td>-1,1</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>0,0</td>
+<td>1,-1</td>
+<td>0,0</td>
+</tr>
+</tbody>
+</table>
+<p>和Game3的相同点在于1的个数就是格子的标记数，且不存在(1,1)的格子，因此不存在纯策略均衡，也不存在被严格支配的行和列。</p>
+<p>与Game3的区别在于被设计过的payoff矩阵使得a和b的系数矩阵满秩，因此方程有唯一解，各行列的概率分布如下：</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line">Player a: </span><br><span class="line">Probability <span class="keyword">is</span>:  [<span class="number">0.125</span>      <span class="number">0.06944444</span> <span class="number">0.13888889</span> <span class="number">0.08333333</span> <span class="number">0.15277778</span> <span class="number">0.09722222</span></span><br><span class="line"> <span class="number">0.16666667</span> <span class="number">0.11111111</span> <span class="number">0.05555556</span>]</span><br><span class="line">Player b: </span><br><span class="line">Probability <span class="keyword">is</span>:  [<span class="number">0.11111111</span> <span class="number">0.16666667</span> <span class="number">0.09722222</span> <span class="number">0.15277778</span> <span class="number">0.08333333</span> <span class="number">0.13888889</span></span><br><span class="line"> <span class="number">0.06944444</span> <span class="number">0.125</span>      <span class="number">0.05555556</span>]</span><br></pre></td></tr></table></figure>
+<h3><span id="shi-yan-xin-de">实验心得</span><a href="#shi-yan-xin-de" class="header-anchor">#</a></h3>
+<ul>
+<li>能直接找到解的算法比遍历再检验的更优。不过能想到这个算法，是因为经济学上的划线法解纯策略给我留下的印象太深（太好用了），于是直接动手实现了这个，并没有绕太多弯路。</li>
+<li>很高兴代码跑出来的结果能够和实际直观对的上，切实感受到了用代码跑结果，根据结果再反推收益矩阵特性的便利。不过遗憾的是没能找到比较直观解释混合策略的概率分布结果的方式，只能说检验一下确实另一方是无差异选择，但很难一看表格就知道概率分布的大致样子。</li>
+<li>一开始没看到数据写的文件读取还是不够鲁棒，都没考虑到后面几个数据会有空格哈哈。</li>
+</ul>
+</div><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:im.sisixi@gmail.com">西瓜皮</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="http://jiaqi-xi.github.io/2021/04/29/%E5%8F%8C%E4%BA%BA%E5%8D%9A%E5%BC%88%E7%BA%B3%E4%BB%80%E5%9D%87%E8%A1%A1%E6%B1%82%E8%A7%A3/">http://jiaqi-xi.github.io/2021/04/29/%E5%8F%8C%E4%BA%BA%E5%8D%9A%E5%BC%88%E7%BA%B3%E4%BB%80%E5%9D%87%E8%A1%A1%E6%B1%82%E8%A7%A3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="http://jiaqi-xi.github.io" target="_blank">西瓜皮的博客</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%A4%BE%E4%BC%9A%E4%B8%8E%E5%B8%82%E5%9C%BA%E4%B8%AD%E7%9A%84%E8%AE%A1%E7%AE%97%E9%97%AE%E9%A2%98/">社会与市场中的计算问题</a><a class="post-meta__tags" href="/tags/%E5%AE%9E%E9%AA%8C%E6%8A%A5%E5%91%8A/">实验报告</a></div><div class="post_share"><div class="social-share" data-image="https://tva1.sinaimg.cn/large/008i3skNgy1gq0thyhyunj31900u0kjl.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css"/><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js"></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2021/04/29/%E5%85%B3%E4%BA%8E%E5%8F%8B%E8%B0%8A%E6%82%96%E8%AE%BA%E7%9A%84%E9%9A%8F%E6%9C%BA%E5%9B%BE%E7%94%9F%E6%88%90%E6%A8%A1%E6%8B%9F%E6%A3%80%E9%AA%8C/"><img class="next-cover" data-src="https://tva1.sinaimg.cn/large/008i3skNgy1gq0tjxpblcj31900u0e81.jpg" onerror="onerror=null;src='/img/404.jpg'"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">友谊悖论随机图生成模拟检验</div></div></a></div></nav><div class="relatedPosts"><div class="relatedPosts_headline"><i class="fas fa-thumbs-up fa-fw"></i><span> 相关推荐</span></div><div class="relatedPosts_list"><div class="relatedPosts_item"><a href="/2021/04/29/关于友谊悖论的随机图生成模拟检验/" title="友谊悖论随机图生成模拟检验"><img class="relatedPosts_cover" data-src="https://tva1.sinaimg.cn/large/008i3skNgy1gq0tjxpblcj31900u0e81.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-29</div><div class="relatedPosts_title">友谊悖论随机图生成模拟检验</div></div></a></div><div class="relatedPosts_item"><a href="/2021/04/29/匹配市场清算价格求解/" title="匹配市场清算价格求解"><img class="relatedPosts_cover" data-src="https://tva1.sinaimg.cn/large/008i3skNgy1gq0tfwct1yj31900u019j.jpg"><div class="relatedPosts_main is-center"><div class="relatedPosts_date"><i class="far fa-calendar-alt fa-fw"></i> 2021-04-29</div><div class="relatedPosts_title">匹配市场清算价格求解</div></div></a></div></div></div><hr><div id="post-comment"><div class="comment_headling"><i class="fas fa-comments fa-fw"></i><span> 评论</span></div><div class="vcomment" id="vcomment"></div><script src="https://cdn.jsdelivr.net/npm/valine/dist/Valine.min.js"></script><script>var requestSetting = function (from,set) {
+  var from = from
+  var setting = set.split(',').filter(function(item){
+  return from.indexOf(item) > -1
+  });
+  setting = setting.length == 0 ? from :setting;
+  return setting
+}
+
+var guestInfo = requestSetting(['nick','mail','link'],'nick,mail,link')
+var requiredFields = requestSetting(['nick','mail'],'nick')
+
+window.valine = new Valine({
+  el:'#vcomment',
+  appId: 'SIqfbrJOe6xquWS1f0SCNKEx-gzGzoHsz',
+  appKey: 'YqW5dhrEz9Q84o6fT3Vq87DT',
+  placeholder: '留下邮箱更容易收到回复🙋（不会显示的！）',
+  avatar: 'robohash',
+  meta: guestInfo,
+  pageSize: '10',
+  lang: 'en',
+  recordIP: false,
+  serverURLs: '',
+  emojiCDN: '',
+  emojiMaps: "",
+  enableQQ: false,
+  requiredFields: requiredFields
+});</script></div></article></main><footer id="footer" data-type="color"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2021 By 西瓜皮</div><div class="framework-info"><span>驱动 </span><a href="https://hexo.io" target="_blank" rel="noopener"><span>Hexo</span></a><span class="footer-separator">|</span><span>主题 </span><a href="https://github.com/jerryc127/hexo-theme-butterfly" target="_blank" rel="noopener"><span>Butterfly</span></a></div></div></footer></div><section class="rightside" id="rightside"><div id="rightside-config-hide"><button id="readmode" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="font_plus" title="放大字体"><i class="fas fa-plus"></i></button><button id="font_minus" title="缩小字体"><i class="fas fa-minus"></i></button><button class="translate_chn_to_cht" id="translateLink" title="简繁转换">繁</button><button id="darkmode" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button></div><div id="rightside-config-show"><button id="rightside_config" title="设置"><i class="fas fa-cog"></i></button><a id="to_comment" href="#post-comment" title="直达评论"><i class="scroll_to_comment fas fa-comments"></i></a><button class="close" id="mobile-toc-button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></section><div class="search-dialog" id="algolia-search"><div class="search-dialog__title" id="algolia-search-title">Algolia</div><div id="algolia-input-panel"><div id="algolia-search-input"></div></div><hr/><div id="algolia-search-results"><div id="algolia-hits"></div><div id="algolia-pagination"></div><div id="algolia-stats"></div></div><span class="search-close-button"><i class="fas fa-times"></i></span></div><div class="search-mask"></div><script src="https://cdn.jsdelivr.net/npm/jquery@latest/dist/jquery.min.js"></script><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="/js/tw_cn.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/fancybox@latest/dist/jquery.fancybox.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex@latest/dist/katex.min.css"><script src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script><link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css"><script>$(function () {
+  $('span.katex-display').wrap('<div class="katex-wrap"></div>')
+})</script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><script id="canvas_nest" color="149,7,13" opacity="0.7" zIndex="-1" count="99" mobile="false" src="/js/third-party/canvas-nest.js"></script><script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module" defer></script><script src="https://cdn.jsdelivr.net/npm/vanilla-lazyload/dist/lazyload.iife.min.js" async></script><script src="/js/third-party/ClickShowText.js"></script><script src="/js/search/algolia.js"></script></body></html>
